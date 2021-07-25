@@ -9,7 +9,7 @@ app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(express.static("public"));
 
-mongoose.connect("mongodb://localhost:27017/todolistDB", {useNewUrlParser:true, useUnifiedTopology: true, useFindAndModify:false });
+mongoose.connect("mongodb+srv://admin-anandb0101:QW5hbmRi@cluster0.9nq2x.mongodb.net/todolistDB?retryWrites=true&w=majority", {useNewUrlParser:true, useUnifiedTopology: true, useFindAndModify:false });
 
 const itemsSchema = mongoose.Schema({
     name:String,
@@ -52,7 +52,7 @@ app.get("/", function (req, res) {
                     if(err)
                         console.log(err);
                     else
-                        console.log("seccess");
+                        console.log("seccessfully connected to database");
                 });
                 res.redirect("/");
             } else {
@@ -146,6 +146,11 @@ app.get("/about" ,function(req, res) {
     res.render('about');
 });
 
-app.listen(3000, function () {
-    console.log("server started at port 3000");
+let port = process.env.PORT;
+if (port == null || port == "") {
+  port = 8000;
+}
+
+app.listen(port, function () {
+    console.log("server started at port "+port+" succesfully!");
 });
