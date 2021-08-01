@@ -29,20 +29,7 @@ const item3 = new Item({
 
 const defaultItems = [item1, item2, item3];
 
-var today = new Date();
-var currentDay = today.getDay();
-var day = "";
-
-var options = {
-    weekday: 'long',
-    year:'numeric',
-    month: 'long',
-    day: 'numeric'
-};
-
 app.get("/", function (req, res) {
-    day = today.toLocaleDateString("en-US", options);
-
     Item.find({}, function(err, foundItems){
         if(err) {
             console.log(err);
@@ -56,10 +43,11 @@ app.get("/", function (req, res) {
                 });
                 res.redirect("/");
             } else {
-                res.render("list",{
-                    listTitle:day,
-                    newListItem:foundItems
-                });
+                    res.render("list",{
+                        listTitle:"Today",
+                        newListItem:foundItems,
+                    });
+                
             }
         }
     });
@@ -72,7 +60,7 @@ const listSchema = mongoose.Schema({
 
 const List = mongoose.model("List", listSchema);
 
-app.get("/:costumListName", function(req,res){
+app.get("/list/:costumListName", function(req,res){
     const costumListName = _.capitalize(req.params.costumListName);
 
     List.findOne({name:costumListName}, function(err, foundList){
@@ -83,11 +71,12 @@ app.get("/:costumListName", function(req,res){
                     items:defaultItems
                 });
                 list.save();
-                res.redirect("/"+costumListName);
+                
+                res.redirect("/list/"+costumListName);
             } else {
                 res.render("list",{
                     listTitle:foundList.name,
-                    newListItem:foundList.items
+                    newListItem:foundList.items,
                 });
             }
         }
@@ -102,7 +91,7 @@ app.post("/", function(req,res) {
         name:itemName
     });
     
-    if(listName === day) {
+    if(listName === "Today") {
         item.save();
         res.redirect("/");
     } else {
@@ -119,7 +108,7 @@ app.post("/delete", function(req,res){
     const checkedItemId = req.body.checkbox;
     const checkedListName = req.body.list;
 
-    if(checkedListName === day) {
+    if(checkedListName === "Today") {
         Item.findByIdAndRemove(checkedItemId, function(err){
             if(err)
                 console.log(err);
@@ -135,12 +124,15 @@ app.post("/delete", function(req,res){
     }
 });
 
-app.get("/work", function(req, res) {
-    res.render('list', {
-        listTitle:"Work List",
-        newListItem:workItems
-    })
+app.get("/createNewList", function(req,res){
+    res.render('create');
 });
+
+app.post("/createNewList", function(req,res) {
+    const listName = req.body.newList;
+    res.redirect("/list/"+listName);
+});
+
 
 app.get("/about" ,function(req, res) {
     res.render('about');
