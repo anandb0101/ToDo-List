@@ -15,14 +15,15 @@
             <li class="dropdown">
               <a href="javascript:void(0)" class="dropbtn">Lists</a>
               <div class="dropdown-content">
-                <a href="#">List 1</a>
-                <a href="#">List 2</a>
-                <a href="#">List 3</a>
+                <a href="/">Today</a>
+                <% allLists.forEach(function(list) { %>
+                  <a href="/list/<%=list.name%>" > <%= list.name %>  </a>
+                <% }) %>
               </div>
             </li>
             <li><a href="/createNewList">Create New List</a></li>
             <li style="float: right;" ><a href="/about">About</a></li>
-            <!-- <li style="float: right;" ><a href="#news">Contact Us</a></li> -->
+            
           </ul>
     </div>
 </head>

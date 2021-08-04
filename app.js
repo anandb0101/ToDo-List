@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
 const _ = require("lodash");
+const { forEach } = require("lodash");
 
 const app = express();
 app.set("view engine", "ejs");
@@ -16,6 +17,13 @@ const itemsSchema = mongoose.Schema({
 });
 
 const Item = mongoose.model("Item", itemsSchema);
+
+const listSchema = mongoose.Schema({
+    name:String,
+    items:[itemsSchema]
+});
+
+const List = mongoose.model("List", listSchema);
 
 const item1 = new Item({
     name : "welcome to ToDo List"
@@ -43,29 +51,28 @@ app.get("/", function (req, res) {
                 });
                 res.redirect("/");
             } else {
+                List.find({}, function(err, allLists){
                     res.render("list",{
                         listTitle:"Today",
                         newListItem:foundItems,
+                        allLists : allLists
+                        
                     });
+                });
+                    
                 
             }
         }
     });
 });
 
-const listSchema = mongoose.Schema({
-    name:String,
-    items:[itemsSchema]
-});
-
-const List = mongoose.model("List", listSchema);
 
 app.get("/list/:costumListName", function(req,res){
     const costumListName = _.capitalize(req.params.costumListName);
 
     List.findOne({name:costumListName}, function(err, foundList){
         if(!err) {
-            if(!foundList) {
+            if(foundList==null) {
                 const list = new List({
                     name:costumListName,
                     items:defaultItems
@@ -74,13 +81,18 @@ app.get("/list/:costumListName", function(req,res){
                 
                 res.redirect("/list/"+costumListName);
             } else {
-                res.render("list",{
-                    listTitle:foundList.name,
-                    newListItem:foundList.items,
+                List.find({}, function(err, allLists){
+                    res.render("list",{
+                        listTitle:foundList.name,
+                        newListItem:foundList.items,
+                        allLists : allLists
+                    });
                 });
+                
             }
         }
     });
+
     
 });
 
@@ -99,7 +111,7 @@ app.post("/", function(req,res) {
             foundList.items.push(item);
             foundList.save();
         });
-        res.redirect("/"+listName);
+        res.redirect("/list/"+listName);
     }
 
 });
@@ -118,14 +130,18 @@ app.post("/delete", function(req,res){
     } else {
         List.findOneAndUpdate({name:checkedListName}, {$pull:{items:{_id:checkedItemId}}}, function(err, foundList){
             if(!err) {
-                res.redirect("/"+checkedListName);
+                res.redirect("/list/"+checkedListName);
             }
         });
     }
 });
 
 app.get("/createNewList", function(req,res){
-    res.render('create');
+    List.find({}, function(err, allLists){
+        res.render("create",{
+            allLists : allLists
+        });
+    });
 });
 
 app.post("/createNewList", function(req,res) {
@@ -135,13 +151,18 @@ app.post("/createNewList", function(req,res) {
 
 
 app.get("/about" ,function(req, res) {
-    res.render('about');
+    List.find({}, function(err, allLists){
+        res.render("about",{
+            allLists : allLists
+        });
+    });
 });
 
 let port = process.env.PORT;
 if (port == null || port == "") {
   port = 3000;
 }
+
 
 app.listen(port, function () {
     console.log("server started at port "+port+" succesfully!");
